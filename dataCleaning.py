@@ -48,11 +48,20 @@ df['month_added'] = df['date_added'].dt.month
 # Content age
 df['content_age'] = 2026 - df['release_year']
 
+# Clean genres properly
+df['listed_in'] = df['listed_in'].str.lower()
+
+df['listed_in'] = df['listed_in'].apply(
+    lambda x: ','.join([i.strip() for i in x.split(',')]) 
+    if isinstance(x, str) else x
+)
+
 # One-hot encode genres
 genre_dummies = df['listed_in'].str.get_dummies(sep=',')
-genre_dummies.columns = genre_dummies.columns.str.strip()
 
-# Merge back
+# Remove duplicate columns if any
+genre_dummies = genre_dummies.loc[:, ~genre_dummies.columns.duplicated()]
+
 df = pd.concat([df, genre_dummies], axis=1)
 
 le_rating = LabelEncoder()
